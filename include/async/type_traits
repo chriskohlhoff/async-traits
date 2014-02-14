@@ -1,0 +1,96 @@
+//
+// type_traits
+// ~~~~~~~~~~~
+// Extends the standard type_traits header with additional type traits for
+// asynchronous operations: handler_type and async_result.
+//
+// Copyright (c) 2014 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+//
+// Distributed under the Boost Software License, Version 1.0. (See accompanying
+// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+//
+
+#ifndef ASYNC_TYPE_TRAITS_HEADER
+#define ASYNC_TYPE_TRAITS_HEADER
+
+#include <type_traits>
+
+namespace std {
+
+// The handler_type trait is used to determine the handler type for an
+// asynchronous operation. A handler is a function object ([function.objects])
+// that is invoked on completion of the operation.
+//
+// Template parameter _CompletionToken specifies the model used to obtain the
+// result of the asynchronous operation. Template parameter _Signature is the
+// call signature ([func.def]) for the handler type invoked on completion of
+// the asynchronous operation.
+//
+// A program may specialize this trait if the _CompletionToken template
+// parameter in the specialization is a user-defined type.
+//
+// Specializations of handler_type shall define a nested handler type, named
+// type, that satisifies the MoveConstructible requirements, and objects of
+// type type shall be constructible from an lvalue or rvalue of the type
+// specified by the _CompletionToken template parameter.
+
+template <class _CompletionToken, class _Signature>
+struct handler_type;
+
+template <class _T, class _DecayT, class _Signature>
+struct __handler_type_helper
+{
+  typedef typename handler_type<_DecayT, _Signature>::type _Type;
+};
+
+template <class _T, class _Signature>
+struct __handler_type_helper<_T, _T, _Signature>
+{
+  typedef _T _Type;
+};
+
+template <class _CompletionToken, class _Signature>
+struct handler_type
+{
+  typedef typename __handler_type_helper<_CompletionToken,
+    typename decay<_CompletionToken>::type, _Signature>::_Type type;
+};
+
+// The async_result trait enables customization of the return type and return
+// value of an asynchronous operation’s initiating function.
+//
+// Template argument _Handler is a handler type produced by handler_type<T,
+// S>::type for some completion token type T and call signature S.
+//
+// A program may specialize this template if the _Handler template parameter in
+// the specialization is a user-defined type.
+//
+// Specializations of async_result shall satisfy the Destructible requirements
+// in addition to the requirements in the table below. In this table, R is a
+// specialization of async_result for the template parameter _Handler; r is a
+// modifiable lvalue of type R; and h is a modifiable lvalue of type _Handler.
+//
+// +--------------------------------------------------------------------------+
+// | Expression       Return type        Note                                 |
+// +--------------------------------------------------------------------------+
+// | R::type                             void; or a type satisfying           |
+// |                                     MoveConstructible requirements.      |
+// +--------------------------------------------------------------------------+
+// | R r(h);                                                                  |
+// +--------------------------------------------------------------------------+
+// | r.get()          R::type            The get() member function shall      |
+// |                                     be used only as a return expression. |
+// +--------------------------------------------------------------------------+
+
+template <class _Handler>
+class async_result
+{
+public:
+  typedef void type;
+  async_result(_Handler&) {}
+  void get() {}
+};
+
+} // namespace std
+
+#endif
