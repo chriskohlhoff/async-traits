@@ -27,7 +27,7 @@ struct __value_pack
   template <class... _Args>
   static void _Apply(promise<_Type>& p, _Args&&... __args)
   {
-    p.set_value({forward<_Args>(__args)...});
+    p.set_value(std::make_tuple(forward<_Args>(__args)...));
   }
 };
 
