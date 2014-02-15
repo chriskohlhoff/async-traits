@@ -20,9 +20,44 @@
 namespace std {
 
 template <class... _Values>
+struct __value_pack
+{
+  typedef tuple<_Values...> _Type;
+
+  template <class... _Args>
+  static void _Apply(promise<_Type>& p, _Args&&... __args)
+  {
+    p.set_value({forward<_Args>(__args)...});
+  }
+};
+
+template <class _Value>
+struct __value_pack<_Value>
+{
+  typedef _Value _Type;
+
+  template <class _Arg>
+  static void _Apply(promise<_Type>& p, _Arg&& __arg)
+  {
+    p.set_value(forward<_Arg>(__arg));
+  }
+};
+
+template <>
+struct __value_pack<>
+{
+  typedef void _Type;
+
+  static void _Apply(promise<_Type>& p)
+  {
+    p.set_value();
+  }
+};
+
+template <class... _Values>
 struct __promise_handler
 {
-  promise<tuple<_Values...>> _M_promise;
+  promise<typename __value_pack<_Values...>::_Type> _M_promise;
 
   template <class _Alloc>
   __promise_handler(use_future_t<_Alloc> __u)
@@ -31,119 +66,14 @@ struct __promise_handler
   template <class... _Args>
   void operator()(_Args&&... __args)
   {
-    _M_promise.set_value(std::make_tuple(forward<_Args>(__args)...));
-  }
-};
-
-template <>
-struct __promise_handler<>
-{
-  promise<void> _M_promise;
-
-  template <class _Alloc>
-  __promise_handler(use_future_t<_Alloc> __u)
-    : _M_promise(allocator_arg, __u.get_allocator()) {}
-
-  void operator()()
-  {
-    _M_promise.set_value();
-  }
-};
-
-template <>
-struct __promise_handler<error_code>
-{
-  promise<void> _M_promise;
-
-  template <class _Alloc>
-  __promise_handler(use_future_t<_Alloc> __u)
-    : _M_promise(allocator_arg, __u.get_allocator()) {}
-
-  void operator()(const error_code& __e)
-  {
-    if (__e)
-      _M_promise.set_exception(make_exception_ptr(system_error(__e)));
-    else
-      _M_promise.set_value();
-  }
-};
-
-template <>
-struct __promise_handler<exception_ptr>
-{
-  promise<void> _M_promise;
-
-  template <class _Alloc>
-  __promise_handler(use_future_t<_Alloc> __u)
-    : _M_promise(allocator_arg, __u.get_allocator()) {}
-
-  void operator()(const exception_ptr& __e)
-  {
-    if (__e)
-      _M_promise.set_exception(__e);
-    else
-      _M_promise.set_value();
-  }
-};
-
-template <class _Value>
-struct __promise_handler<_Value>
-{
-  promise<_Value> _M_promise;
-
-  template <class _Alloc>
-  __promise_handler(use_future_t<_Alloc> __u)
-    : _M_promise(allocator_arg, __u.get_allocator()) {}
-
-  template <class _Arg>
-  void operator()(_Arg&& __a)
-  {
-    _M_promise.set_value(forward<_Arg>(__a));
-  }
-};
-
-template <class _Value>
-struct __promise_handler<error_code, _Value>
-{
-  promise<_Value> _M_promise;
-
-  template <class _Alloc>
-  __promise_handler(use_future_t<_Alloc> __u)
-    : _M_promise(allocator_arg, __u.get_allocator()) {}
-
-  template <class _Arg>
-  void operator()(const error_code& __e, _Arg&& __a)
-  {
-    if (__e)
-      _M_promise.set_exception(make_exception_ptr(system_error(__e)));
-    else
-      _M_promise.set_value(forward<_Arg>(__a));
-  }
-};
-
-template <class _Value>
-struct __promise_handler<exception_ptr, _Value>
-{
-  promise<_Value> _M_promise;
-
-  template <class _Alloc>
-  __promise_handler(use_future_t<_Alloc> __u)
-    : _M_promise(allocator_arg, __u.get_allocator()) {}
-
-  template <class _Arg>
-  void operator()(const exception_ptr& __e, _Arg&& __a)
-  {
-    if (__e)
-      _M_promise.set_exception(__e);
-    else
-      _M_promise.set_value(forward<_Arg>(__a));
+    __value_pack<_Values...>::_Apply(_M_promise, forward<_Args>(__args)...);
   }
 };
 
 template <class... _Values>
 struct __promise_handler<error_code, _Values...>
 {
-  promise<tuple<_Values...>> _M_promise;
+  promise<typename __value_pack<_Values...>::_Type> _M_promise;
 
   template <class _Alloc>
   __promise_handler(use_future_t<_Alloc> __u)
@@ -155,14 +85,14 @@ struct __promise_handler<error_code, _Values...>
     if (__e)
       _M_promise.set_exception(make_exception_ptr(system_error(__e)));
     else
-      _M_promise.set_value(std::make_tuple(forward<_Args>(__args)...));
+      __value_pack<_Values...>::_Apply(_M_promise, forward<_Args>(__args)...);
   }
 };
 
 template <class... _Values>
 struct __promise_handler<exception_ptr, _Values...>
 {
-  promise<tuple<_Values...>> _M_promise;
+  promise<typename __value_pack<_Values...>::_Type> _M_promise;
 
   template <class _Alloc>
   __promise_handler(use_future_t<_Alloc> __u)
@@ -174,7 +104,7 @@ struct __promise_handler<exception_ptr, _Values...>
     if (__e)
       _M_promise.set_exception(__e);
     else
-      _M_promise.set_value(std::make_tuple(forward<_Args>(__args)...));
+      __value_pack<_Values...>::_Apply(_M_promise, forward<_Args>(__args)...);
   }
 };
 
