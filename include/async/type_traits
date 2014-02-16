@@ -35,25 +35,16 @@ namespace std {
 // specified by the _CompletionToken template parameter.
 
 template <class _CompletionToken, class _Signature>
-struct handler_type;
-
-template <class _T, class _DecayT, class _Signature>
-struct __handler_type_helper
-{
-  typedef typename handler_type<_DecayT, _Signature>::type _Type;
-};
-
-template <class _T, class _Signature>
-struct __handler_type_helper<_T, _T, _Signature>
-{
-  typedef _T _Type;
-};
-
-template <class _CompletionToken, class _Signature>
 struct handler_type
 {
-  typedef typename __handler_type_helper<_CompletionToken,
-    typename decay<_CompletionToken>::type, _Signature>::_Type type;
+  // Type: _CompletionToken if _CompletionToken and
+  // decay<_CompletionToken>::type are the same type; otherwise,
+  // handler_type<typename decay<_CompletionToken>::type, _Signature>::type.
+  typedef typename conditional<
+    is_same<_CompletionToken, typename decay<_CompletionToken>::type>::value,
+    decay<_CompletionToken>,
+    handler_type<typename decay<_CompletionToken>::type, _Signature>
+  >::type::type type;
 };
 
 // The async_result trait enables customization of the return type and return
