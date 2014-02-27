@@ -21,7 +21,7 @@ namespace std {
 // The class template use_future_t defines a set of completion token types for
 // use with asynchronous operations.
 
-template <class _Alloc = std::allocator<void>>
+template <class _Alloc = allocator<void>>
 class use_future_t
 {
 public:
