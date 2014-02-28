@@ -47,6 +47,10 @@ struct handler_type
   >::type::type type;
 };
 
+template <class _CompletionToken, class _Signature>
+using handler_type_t = typename handler_type<
+  _CompletionToken, _Signature>::type;
+
 // The async_result trait enables customization of the return type and return
 // value of an asynchronous operation’s initiating function.
 //

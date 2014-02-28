@@ -3,13 +3,11 @@
 
 template <class CompletionToken>
 typename std::async_result<
-  typename std::handler_type<CompletionToken,
-    void()>::type>::type
+  std::handler_type_t<CompletionToken, void()>>::type
 async_foo(CompletionToken&& tok)
 {
-  typename std::handler_type<CompletionToken,
-    void()>::type handler(
-      std::forward<CompletionToken>(tok));
+  std::handler_type_t<CompletionToken, void()>
+    handler(std::forward<CompletionToken>(tok));
 
   std::async_result<decltype(handler)> result(handler);
 
