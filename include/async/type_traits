@@ -83,6 +83,8 @@ class async_result
 public:
   typedef void type;
   async_result(_Handler&) {}
+  async_result(const async_result&) = delete;
+  async_result& operator=(const async_result&) = delete;
   void get() {}
 };
 

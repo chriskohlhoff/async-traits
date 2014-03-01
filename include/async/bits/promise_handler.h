@@ -118,6 +118,8 @@ public:
 
   async_result(_Handler& __h)
     : _M_future(__h._M_promise.get_future()) {}
+  async_result(const async_result&) = delete;
+  async_result& operator=(const async_result&) = delete;
 
   type get() { return std::move(_M_future); }
 
