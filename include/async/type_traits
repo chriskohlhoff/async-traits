@@ -88,6 +88,14 @@ public:
   void get() {}
 };
 
+// The async_completion template may be used within an initiating function to
+// reify a completion token into a handler and its linked asynchronous result.
+//
+// Template parameter _CompletionToken specifies the model used to obtain the
+// result of the asynchronous operation. Template parameter _Signature is the
+// call signature ([func.def]) for the handler type invoked on completion of
+// the asynchronous operation.
+
 template <class _CompletionToken, class _Signature>
 struct async_completion
 {
