@@ -44,7 +44,7 @@ esac
 
 if test "$GXX" = yes; then
   CXXFLAGS="$CXXFLAGS -ftemplate-depth-256"
-  CPPFLAGS="-std=c++11 $CPPFLAGS"
+  CPPFLAGS="-std=c++1y $CPPFLAGS"
 fi
 
 AC_OUTPUT([

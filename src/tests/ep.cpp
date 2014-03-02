@@ -3,9 +3,7 @@
 #include <stdexcept>
 
 template <class CompletionToken>
-typename std::async_result<
-  std::handler_type_t<CompletionToken, void(std::exception_ptr)>>::type
-async_foo(bool fail, CompletionToken&& tok)
+auto async_foo(bool fail, CompletionToken&& tok)
 {
   std::async_completion<CompletionToken, void(std::exception_ptr)> completion(tok);
 

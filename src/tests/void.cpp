@@ -2,9 +2,7 @@
 #include <cassert>
 
 template <class CompletionToken>
-typename std::async_result<
-  std::handler_type_t<CompletionToken, void()>>::type
-async_foo(CompletionToken&& tok)
+auto async_foo(CompletionToken&& tok)
 {
   std::async_completion<CompletionToken, void()> completion(tok);
 
