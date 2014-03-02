@@ -82,10 +82,32 @@ class async_result
 {
 public:
   typedef void type;
-  async_result(_Handler&) {}
+  explicit async_result(_Handler&) {}
   async_result(const async_result&) = delete;
   async_result& operator=(const async_result&) = delete;
   void get() {}
+};
+
+template <class _CompletionToken, class _Signature>
+struct async_completion
+{
+  typedef handler_type_t<_CompletionToken, _Signature> handler_type;
+
+  explicit async_completion(
+    typename remove_reference<_CompletionToken>::type& __token)
+    : handler(static_cast<typename conditional<
+        is_same<_CompletionToken, handler_type>::value,
+        handler_type&, _CompletionToken&&>::type>(__token)),
+      result(handler) {}
+
+  async_completion(const async_completion&) = delete;
+  async_completion& operator=(const async_completion&) = delete;
+
+  typename conditional<
+    is_same<_CompletionToken, handler_type>::value,
+    handler_type&, handler_type>::type handler;
+
+  async_result<handler_type> result;
 };
 
 } // namespace std
